@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Records - AttentAI System{% endblock %}
+{% block header_title %}Automated Face Recognition Attendance Logs{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+    <!-- Header & Filter Form -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h5 class="fw-bold text-white mb-1"><i class="fas fa-clipboard-check text-success me-2"></i> Class Attendance Records</h5>
+            <p class="text-muted small mb-0">Automated attendance records logged by face recognition engine.</p>
+        </div>
+        <a href="{{ url_for('reports.export_csv') }}?type=attendance" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-file-csv me-1"></i> Export CSV
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" action="{{ url_for('attendance.list_attendance') }}" class="row g-2 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control bg-dark border-secondary text-white" placeholder="Search student name or ID..." value="{{ search }}">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control bg-dark border-secondary text-white" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-3">
+            <select name="session_id" class="form-select bg-dark border-secondary text-white">
+                <option value="">-- All Class Sessions --</option>
+                {% for s in sessions %}
+                <option value="{{ s.id }}" {% if selected_session == s.id|string %}selected{% endif %}>
+                    {{ s.subject_name }} ({{ s.session_date.strftime('%Y-%m-%d') if s.session_date else '' }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary-custom w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+        </div>
+    </form>
+
+    <!-- Attendance Table -->
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th>Roll Number</th>
+                    <th>Class Session</th>
+                    <th>Status</th>
+                    <th>AI Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td class="text-muted small">
+                        <div class="fw-semibold text-white">{{ r.record_date.strftime('%Y-%m-%d') }}</div>
+                        <div class="text-xs text-muted">{{ r.timestamp.strftime('%H:%M:%S') }}</div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="avatar-placeholder" style="width:32px; height:32px; font-size:0.75rem;">
+                                {{ r.student.name[0] if r.student else 'U' }}
+                            </div>
+                            <span class="fw-semibold text-white">{{ r.student.name if r.student else 'Unknown' }}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-dark border border-secondary text-info">{{ r.student.student_id if r.student else 'N/A' }}</span></td>
+                    <td class="text-secondary small">{{ r.student.roll_number if r.student else 'N/A' }}</td>
+                    <td class="text-muted small">{{ r.session.subject_name if r.session else 'General' }}</td>
+                    <td><span class="badge bg-success-subtle text-success border border-success">{{ r.status }}</span></td>
+                    <td class="text-info fw-bold small">{{ round(r.confidence * 100, 1) }}%</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No attendance records found matching filters.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

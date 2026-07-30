@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Students Directory - AttentAI System{% endblock %}
+{% block header_title %}Student Directory & Face Registration{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div>
+            <h5 class="fw-bold text-white mb-1"><i class="fas fa-user-graduate text-primary me-2"></i> Registered Students Directory</h5>
+            <p class="text-muted small mb-0">Manage student profiles, face encodings, and individual attendance history.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <i class="fas fa-user-plus me-1"></i> Register New Student
+            </button>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <form method="GET" action="{{ url_for('students.list_students') }}" class="row g-2 mb-4">
+        <div class="col-md-9">
+            <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" name="search" class="form-control bg-dark border-secondary text-white" placeholder="Search by student name, ID, or roll number..." value="{{ search_query }}">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-outline-light w-100"><i class="fas fa-filter me-1"></i> Search</button>
+        </div>
+    </form>
+
+    <!-- Students Table -->
+    <div class="table-responsive">
+        <table class="table table-custom align-middle">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Roll Number</th>
+                    <th>Department & Class</th>
+                    <th>Face Profile</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if student.photo_path %}
+                                <img src="{{ url_for('static', filename=student.photo_path.replace('dataset/students/', '')) if 'dataset' in student.photo_path else url_for('static', filename='images/default_user.png') }}" class="student-avatar" alt="{{ student.name }}" onerror="this.onerror=null; this.src='https://via.placeholder.com/42';">
+                            {% else %}
+                                <div class="avatar-placeholder">{{ student.name[0] }}</div>
+                            {% endif %}
+                            <div>
+                                <a href="{{ url_for('students.student_detail', student_id=student.id) }}" class="fw-bold text-white text-decoration-none hover-blue">
+                                    {{ student.name }}
+                                </a>
+                                <div class="text-muted text-xs">{{ student.email or 'No email' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-dark border border-secondary text-info fs-6">{{ student.student_id }}</span></td>
+                    <td class="text-secondary fw-semibold">{{ student.roll_number }}</td>
+                    <td class="text-muted small">{{ student.department }} ({{ student.semester }})</td>
+                    <td>
+                        {% if student.encodings %}
+                            <span class="badge bg-success-subtle text-success border border-success"><i class="fas fa-check-circle me-1"></i> Encoded ({{ student.encodings|length }})</span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning"><i class="fas fa-exclamation-triangle me-1"></i> Pending Capture</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('students.student_detail', student_id=student.id) }}" class="btn btn-sm btn-outline-info me-1" title="View Profile">
+                            <i class="fas fa-id-card"></i> Profile
+                        </a>
+                        <form action="{{ url_for('students.delete_student', student_id=student.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete student {{ student.name }}?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Student">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No students registered yet. Click 'Register New Student' above to add.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal: Register New Student -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus text-primary me-2"></i> Register New Student</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('students.add_student') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-semibold">Student ID *</label>
+                            <input type="text" name="student_id" class="form-control bg-dark border-secondary text-white" placeholder="STU106" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-semibold">Roll Number *</label>
+                            <input type="text" name="roll_number" class="form-control bg-dark border-secondary text-white" placeholder="21AD006" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-semibold">Full Name *</label>
+                            <input type="text" name="name" class="form-control bg-dark border-secondary text-white" placeholder="John Doe" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-semibold">Department</label>
+                            <input type="text" name="department" class="form-control bg-dark border-secondary text-white" value="AI & Data Science">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-semibold">Semester / Class</label>
+                            <input type="text" name="semester" class="form-control bg-dark border-secondary text-white" value="6th Sem">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-semibold">Email (Optional)</label>
+                            <input type="email" name="email" class="form-control bg-dark border-secondary text-white" placeholder="student@college.edu">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-secondary small fw-semibold">Upload Face Photo (JPEG/PNG)</label>
+                            <input type="file" name="photo" accept="image/*" class="form-control bg-dark border-secondary text-white">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-custom"><i class="fas fa-save me-1"></i> Save Student Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

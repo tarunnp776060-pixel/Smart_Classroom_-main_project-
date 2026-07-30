@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}System Architecture & Viva Guide - AttentAI System{% endblock %}
+{% block header_title %}System Architecture & Final-Year Viva Presentation{% endblock %}
+
+{% block content %}
+<!-- Title Banner -->
+<div class="glass-card mb-4 border-primary">
+    <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="brand-icon" style="width:48px; height:48px; font-size:1.5rem;">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-white mb-0">B.E. Final Year Project: System Architecture & Methodology</h4>
+            <div class="text-secondary small">Real-Time Classroom Attentiveness Detection and Automated Attendance System</div>
+        </div>
+    </div>
+</div>
+
+<!-- Architecture Diagram Card -->
+<div class="glass-card mb-4">
+    <h5 class="fw-bold text-white mb-3"><i class="fas fa-project-diagram text-primary me-2"></i> End-to-End System Pipeline & Data Flow</h5>
+    
+    <div class="p-4 rounded bg-dark border border-secondary text-center overflow-x-auto mb-3">
+        <div class="d-inline-flex flex-wrap align-items-center justify-content-center gap-2 text-white small fw-bold">
+            <div class="p-3 rounded border border-info bg-dark text-info">
+                <i class="fas fa-camera fa-2x mb-1 d-block"></i>
+                1. Video Stream Input<br><span class="fw-normal text-muted text-xs">(Webcam / Video)</span>
+            </div>
+            <i class="fas fa-arrow-right text-muted fs-5"></i>
+
+            <div class="p-3 rounded border border-primary bg-dark text-primary">
+                <i class="fas fa-user-tag fa-2x mb-1 d-block"></i>
+                2. Face Detection & Recognition<br><span class="fw-normal text-muted text-xs">(MediaPipe / Embeddings)</span>
+            </div>
+            <i class="fas fa-arrow-right text-muted fs-5"></i>
+
+            <div class="p-3 rounded border border-success bg-dark text-success">
+                <i class="fas fa-clipboard-check fa-2x mb-1 d-block"></i>
+                3. Automated Attendance<br><span class="fw-normal text-muted text-xs">(Session Timestamp)</span>
+            </div>
+            <i class="fas fa-arrow-right text-muted fs-5"></i>
+
+            <div class="p-3 rounded border border-warning bg-dark text-warning">
+                <i class="fas fa-eye fa-2x mb-1 d-block"></i>
+                4. Eye Tracking & Head Pose<br><span class="fw-normal text-muted text-xs">(EAR + 3D SolvePnP)</span>
+            </div>
+            <i class="fas fa-arrow-right text-muted fs-5"></i>
+
+            <div class="p-3 rounded border border-purple bg-dark text-purple">
+                <i class="fas fa-brain fa-2x mb-1 d-block"></i>
+                5. Attention Scoring Engine<br><span class="fw-normal text-muted text-xs">(0–100 Explainable Index)</span>
+            </div>
+            <i class="fas fa-arrow-right text-muted fs-5"></i>
+
+            <div class="p-3 rounded border border-secondary bg-dark text-white">
+                <i class="fas fa-database fa-2x mb-1 d-block"></i>
+                6. SQLite Persistence & Dashboard<br><span class="fw-normal text-muted text-xs">(Bootstrap 5 & Chart.js)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Methodology Breakdown -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="glass-card h-100">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-microchip text-success me-2"></i> Computer Vision Algorithms & Methodology</h6>
+            <ul class="list-unstyled text-secondary small">
+                <li class="mb-3">
+                    <strong class="text-white">1. Face Recognition & Embedding Engine:</strong><br>
+                    Extracts facial feature embeddings (128-dimensional vector) from detected face bounding boxes and computes Cosine Similarity against registered student embeddings in SQLite.
+                </li>
+                <li class="mb-3">
+                    <strong class="text-white">2. Eye Aspect Ratio (EAR) Eye Tracking:</strong><br>
+                    Uses 6 key landmarks around left and right eye contours from MediaPipe 468 face mesh. Calculates vertical-to-horizontal distance ratio to detect eyes open, blinking, and prolonged eye closure (drowsiness).
+                </li>
+                <li class="mb-3">
+                    <strong class="text-white">3. 3D Head Pose Estimation (Perspective-n-Point):</strong><br>
+                    Maps 2D landmarks (nose tip, chin, eye corners, mouth corners) to 3D canonical facial model coordinates using OpenCV <code>cv2.solvePnP</code>. Decomposes rotation matrix to extract Euler angles (Pitch, Yaw, Roll).
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="glass-card h-100">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-shield-alt text-warning me-2"></i> Privacy & Ethical Considerations</h6>
+            <div class="alert alert-dark border-secondary text-muted small mb-3">
+                <i class="fas fa-info-circle text-info me-1"></i> <strong>Institutional Compliance Notice:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Face data and embeddings are collected exclusively for authorized classroom attendance.</li>
+                    <li>Attention scores are visual estimates based on eye openness and head orientation, not psychological state measurements.</li>
+                    <li>Raw webcam video streams are processed in memory and never saved to persistent storage.</li>
+                    <li>System should be used with student consent and institutional policy approval.</li>
+                </ul>
+            </div>
+
+            <div class="p-3 rounded bg-dark border border-secondary text-white small">
+                <strong class="text-primary"><i class="fas fa-laptop me-1"></i> System Requirements:</strong><br>
+                Python 3.x, Flask, OpenCV 4.x, MediaPipe 0.10.x, NumPy, SQLite3, Modern Web Browser with HTML5 Video support.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

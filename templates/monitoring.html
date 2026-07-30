@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Real-Time Monitoring - AttentAI System{% endblock %}
+{% block header_title %}Real-Time Classroom Video Monitoring & AI Engine{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Main Video Feed Section -->
+    <div class="col-lg-8">
+        <div class="glass-card p-3 mb-4">
+            <!-- Video Control Bar -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger pulse"><i class="fas fa-video me-1"></i> LIVE STREAM</span>
+                    <span class="text-secondary small fw-semibold">
+                        Subject: <strong class="text-white">{{ active_session.subject_name if active_session else 'General Classroom' }}</strong>
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Source Selector -->
+                    <select id="selectVideoSource" class="form-select form-select-sm bg-dark border-secondary text-white style="width: auto;">
+                        <option value="webcam" {% if source_type == 'webcam' %}selected{% endif %}>📷 Live Laptop Webcam</option>
+                        <option value="demo" {% if source_type == 'demo' %}selected{% endif %}>🎬 Demo Classroom Video Mode</option>
+                    </select>
+
+                    <button id="btnStartMonitoring" class="btn btn-sm btn-success {% if is_monitoring %}d-none{% endif %}">
+                        <i class="fas fa-play me-1"></i> Start Monitoring
+                    </button>
+                    <button id="btnStopMonitoring" class="btn btn-sm btn-danger {% if not is_monitoring %}d-none{% endif %}">
+                        <i class="fas fa-stop me-1"></i> Stop Monitoring
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Player Box -->
+            <div class="monitor-box">
+                <img id="liveVideoStream" src="{{ url_for('monitoring.video_feed') }}" alt="Live Classroom Stream" class="video-stream">
+                <div class="hud-overlay">
+                    <div class="hud-badge"><i class="fas fa-microchip me-1 text-primary"></i> MediaPipe 468 Landmark Mesh</div>
+                    <div class="hud-badge"><i class="fas fa-cube me-1 text-warning"></i> 3D PnP Head Pose Solver</div>
+                    <div class="hud-badge"><i class="fas fa-eye me-1 text-success"></i> EAR Eye Tracking</div>
+                </div>
+            </div>
+
+            <div class="mt-3 p-2.5 rounded bg-dark border border-secondary text-muted small">
+                <i class="fas fa-shield-alt text-info me-1"></i> <strong>AI Pipeline Notice:</strong> Video frames are processed in-memory in real time for attendance and attentiveness scoring. Raw video frames are never stored on disk.
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Metrics & Student Cards Sidebar -->
+    <div class="col-lg-4">
+        <!-- Summary Counters -->
+        <div class="glass-card mb-4">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-tachometer-alt text-primary me-2"></i> Frame Analytics Summary</h6>
+            
+            <div class="row g-2 text-center mb-3">
+                <div class="col-6">
+                    <div class="p-2.5 rounded bg-dark border border-secondary">
+                        <div class="stat-label">Detected Faces</div>
+                        <div id="statDetectedCount" class="fs-4 fw-bold text-white">0</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2.5 rounded bg-dark border border-secondary">
+                        <div class="stat-label">Recognized</div>
+                        <div id="statRecognizedCount" class="fs-4 fw-bold text-primary">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-2 text-center">
+                <div class="col-6">
+                    <div class="p-2.5 rounded bg-dark border border-secondary">
+                        <div class="stat-label">Attentive</div>
+                        <div id="statAttentiveCount" class="fs-4 fw-bold text-success">0</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-2.5 rounded bg-dark border border-secondary">
+                        <div class="stat-label">Inattentive</div>
+                        <div id="statInattentiveCount" class="fs-4 fw-bold text-danger">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Detected Students Feed -->
+        <div class="glass-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white mb-0"><i class="fas fa-users-viewfinder text-warning me-2"></i> Live Detected Students</h6>
+                <span class="badge bg-secondary">Real-Time HUD</span>
+            </div>
+
+            <div id="liveStudentsList" class="overflow-y-auto" style="max-height: 380px;">
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-spinner fa-spin fa-2x mb-2 text-primary"></i>
+                    <p class="mb-0 small">Connecting to AI Frame Analyzer...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/monitoring.js') }}"></script>
+{% endblock %}

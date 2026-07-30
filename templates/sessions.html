@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Class Sessions - AttentAI System{% endblock %}
+{% block header_title %}Classroom Sessions & Monitoring Controls{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Active Session Card / Start Form -->
+    <div class="col-lg-5">
+        <div class="glass-card">
+            <h5 class="fw-bold text-white mb-3"><i class="fas fa-plus-circle text-primary me-2"></i> Start New Class Session</h5>
+            
+            {% if active_session %}
+            <div class="p-3 rounded bg-primary-subtle border border-primary text-white mb-3">
+                <div class="badge bg-primary mb-1">Active Session Ongoing</div>
+                <h6 class="fw-bold text-white mb-1">{{ active_session.subject_name }}</h6>
+                <div class="text-xs text-muted">{{ active_session.class_section }} | Started: {{ active_session.start_time.strftime('%H:%M:%S') if active_session.start_time else '' }}</div>
+                
+                <form action="{{ url_for('attendance.stop_session', session_id=active_session.id) }}" method="POST" class="mt-3">
+                    <button type="submit" class="btn btn-danger btn-sm w-100"><i class="fas fa-stop-circle me-1"></i> End Active Session</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('attendance.manage_sessions') }}" method="POST">
+                <div class="mb-3">
+                    <label class="form-label text-secondary small fw-semibold">Subject / Course Name *</label>
+                    <input type="text" name="subject_name" class="form-control bg-dark border-secondary text-white" placeholder="e.g. Artificial Intelligence & Neural Networks" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-secondary small fw-semibold">Class / Section *</label>
+                    <input type="text" name="class_section" class="form-control bg-dark border-secondary text-white" placeholder="e.g. 6th Sem AI&DS - Sec A" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary-custom w-100">
+                    <i class="fas fa-play me-1"></i> Start Session & Begin Monitoring
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sessions History List -->
+    <div class="col-lg-7">
+        <div class="glass-card">
+            <h5 class="fw-bold text-white mb-3"><i class="fas fa-history text-warning me-2"></i> Class Sessions History</h5>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Class / Section</th>
+                            <th>Date</th>
+                            <th>Start / End Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sessions %}
+                        <tr>
+                            <td class="fw-bold text-white">{{ s.subject_name }}</td>
+                            <td class="text-secondary small">{{ s.class_section }}</td>
+                            <td class="text-muted small">{{ s.session_date.strftime('%Y-%m-%d') if s.session_date else '' }}</td>
+                            <td class="text-muted text-xs">
+                                {{ s.start_time.strftime('%H:%M') if s.start_time else '' }} - 
+                                {{ s.end_time.strftime('%H:%M') if s.end_time else 'Active' }}
+                            </td>
+                            <td>
+                                {% if s.is_active %}
+                                    <span class="badge bg-primary">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Completed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">No sessions logged yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

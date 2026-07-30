@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Attentiveness Analytics - AttentAI System{% endblock %}
+{% block header_title %}Attentiveness Analytics & Visual AI Scoring{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="glass-card mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <h6 class="fw-bold text-white mb-0"><i class="fas fa-chart-bar text-warning me-2"></i> Analytics Dashboard Filters</h6>
+        </div>
+        <div class="col-md-3">
+            <select id="filterSession" class="form-select bg-dark border-secondary text-white">
+                <option value="">-- All Class Sessions --</option>
+                {% for s in sessions %}
+                <option value="{{ s.id }}">{{ s.subject_name }} ({{ s.session_date.strftime('%Y-%m-%d') if s.session_date else '' }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select id="filterStudent" class="form-select bg-dark border-secondary text-white">
+                <option value="">-- All Students --</option>
+                {% for st in students %}
+                <option value="{{ st.id }}">{{ st.name }} ({{ st.student_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="glass-card h-100">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-chart-pie text-success me-2"></i> Attentiveness Category Breakdown</h6>
+            <div class="p-3">
+                <canvas id="attentionPieChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="glass-card h-100">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-chart-line text-primary me-2"></i> Attention Score Timeline Trend</h6>
+            <div class="p-2">
+                <canvas id="attentionLineChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 & Formula Breakdown -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-user-chart text-purple me-2"></i> Student-Wise Average Attention Comparison</h6>
+            <div class="p-2">
+                <canvas id="studentBarChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-calculator text-info me-2"></i> Explainable Attention Score Model</h6>
+            <p class="text-secondary small">The system calculates an objective 0–100 index based on real-time visual feature extraction:</p>
+            
+            <div class="p-3 rounded bg-dark border border-secondary mb-3 small font-monospace">
+                Score = 100 - P<sub>Eye</sub> - P<sub>Yaw</sub> - P<sub>Pitch</sub> - P<sub>Yawn</sub>
+            </div>
+
+            <ul class="list-unstyled text-muted small mb-0">
+                <li class="mb-2"><i class="fas fa-eye text-success me-2"></i> <strong>EAR (Eye Aspect Ratio):</strong> &lt; 0.16 = Closed Eyes / Drowsy penalty (-35 pts)</li>
+                <li class="mb-2"><i class="fas fa-compass text-warning me-2"></i> <strong>Yaw Angle (SolvePnP):</strong> &gt; 15° Left/Right penalty (-1.6 pts/deg)</li>
+                <li class="mb-2"><i class="fas fa-arrows-alt-v text-info me-2"></i> <strong>Pitch Angle:</strong> &gt; 15° Up/Down looking penalty (-1.4 pts/deg)</li>
+                <li class="mb-0"><i class="fas fa-smile text-danger me-2"></i> <strong>Yawning:</strong> Mouth aspect ratio &gt; 0.55 penalty (-15 pts)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

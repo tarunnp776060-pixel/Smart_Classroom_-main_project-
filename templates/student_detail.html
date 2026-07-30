@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.name }} - Student Profile{% endblock %}
+{% block header_title %}Student Profile & Attentiveness Portfolio{% endblock %}
+
+{% block content %}
+<!-- Student Header Card -->
+<div class="glass-card mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="avatar-placeholder" style="width:72px; height:72px; font-size:2rem;">
+                {{ student.name[0] }}
+            </div>
+            <div>
+                <h3 class="fw-bold text-white mb-1">{{ student.name }}</h3>
+                <div class="d-flex flex-wrap gap-2 text-muted small">
+                    <span><i class="fas fa-id-badge text-primary me-1"></i> ID: <strong class="text-white">{{ student.student_id }}</strong></span>
+                    <span>•</span>
+                    <span><i class="fas fa-hashtag text-warning me-1"></i> Roll: <strong class="text-white">{{ student.roll_number }}</strong></span>
+                    <span>•</span>
+                    <span><i class="fas fa-university text-info me-1"></i> {{ student.department }} ({{ student.semester }})</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#webcamRegistrationModal">
+                <i class="fas fa-camera me-1"></i> Capture Face Profile via Webcam
+            </button>
+            <a href="{{ url_for('students.list_students') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to Directory
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Attendance Rate</div>
+                <div class="stat-value text-success">{{ attendance_percentage }}%</div>
+                <div class="text-xs text-muted mt-1">{{ present_records }} / {{ total_records }} classes attended</div>
+            </div>
+            <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Average Attention Score</div>
+                <div class="stat-value text-warning">{{ avg_attention }}%</div>
+                <div class="text-xs text-muted mt-1">Based on visual AI metrics</div>
+            </div>
+            <div class="stat-icon orange"><i class="fas fa-brain"></i></div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Face Encodings</div>
+                <div class="stat-value text-primary">{{ student.encodings|length }}</div>
+                <div class="text-xs text-muted mt-1">Stored 128-d Feature Embeddings</div>
+            </div>
+            <div class="stat-icon blue"><i class="fas fa-fingerprint"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- History Tables Row -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-clipboard-list text-primary me-2"></i> Attendance Log History</h6>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recent_attendance %}
+                        <tr>
+                            <td class="text-white">{{ r.record_date.strftime('%Y-%m-%d') }}</td>
+                            <td class="text-muted small">{{ r.timestamp.strftime('%H:%M:%S') }}</td>
+                            <td><span class="badge bg-success-subtle text-success border border-success">{{ r.status }}</span></td>
+                            <td class="text-info small">{{ round(r.confidence * 100, 1) }}%</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No attendance records logged yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-bolt text-warning me-2"></i> Real-Time Attentiveness Log</h6>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Score</th>
+                            <th>Category</th>
+                            <th>Eye / Head Pose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in recent_attention %}
+                        <tr>
+                            <td class="text-muted small">{{ a.timestamp.strftime('%H:%M:%S') }}</td>
+                            <td class="fw-bold text-white">{{ round(a.attention_score, 1) }}%</td>
+                            <td>
+                                <span class="badge {% if a.category == 'Attentive' %}badge-attentive{% elif a.category == 'Partially Attentive' %}badge-partially{% else %}badge-inattentive{% endif %}">
+                                    {{ a.category }}
+                                </span>
+                            </td>
+                            <td class="text-muted text-xs">{{ a.eye_status }} | {{ a.head_pose_status }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No attentiveness entries logged yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Webcam Face Capture -->
+<div class="modal fade" id="webcamRegistrationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold"><i class="fas fa-camera text-primary me-2"></i> Live Webcam Face Registration</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="webcamPreviewContainer" class="ratio ratio-4x3 bg-dark rounded border border-secondary mb-3 overflow-hidden">
+                    <video id="webcamVideo" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+                    <canvas id="webcamCanvas" class="d-none"></canvas>
+                </div>
+                <div id="captureStatusMsg" class="alert alert-info small d-none"></div>
+                <p class="text-muted small mb-0">Look directly at the webcam with neutral expression and clear lighting.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="btnCaptureAndSave" class="btn btn-primary-custom">
+                    <i class="fas fa-fingerprint me-1"></i> Capture & Generate Embedding
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('webcamVideo');
+    const canvas = document.getElementById('webcamCanvas');
+    const btnCapture = document.getElementById('btnCaptureAndSave');
+    const statusMsg = document.getElementById('captureStatusMsg');
+    const modalEl = document.getElementById('webcamRegistrationModal');
+
+    let stream = null;
+
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                statusMsg.className = 'alert alert-danger small';
+                statusMsg.innerText = 'Could not access webcam: ' + err.message;
+                statusMsg.classList.remove('d-none');
+            }
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    }
+
+    if (btnCapture) {
+        btnCapture.addEventListener('click', () => {
+            if (!video.videoWidth) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+
+            const imageDataUrl = canvas.toDataURL('image/jpeg');
+
+            statusMsg.className = 'alert alert-info small';
+            statusMsg.innerText = 'Processing face embedding...';
+            statusMsg.classList.remove('d-none');
+
+            fetch('/api/students/register_webcam_face', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_db_id: {{ student.id }},
+                    image_data: imageDataUrl
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    statusMsg.className = 'alert alert-success small';
+                    statusMsg.innerText = data.message;
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    statusMsg.className = 'alert alert-danger small';
+                    statusMsg.innerText = data.message;
+                }
+            })
+            .catch(err => {
+                statusMsg.className = 'alert alert-danger small';
+                statusMsg.innerText = 'Server error: ' + err.message;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

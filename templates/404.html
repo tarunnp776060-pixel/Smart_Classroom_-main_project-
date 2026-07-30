@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Page Not Found - AttentAI{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-1 text-warning fw-bold">404</h1>
+    <h4 class="text-white">Page Not Found</h4>
+    <p class="text-muted">The requested page does not exist or has been moved.</p>
+    <a href="{{ url_for('analytics.dashboard') }}" class="btn btn-primary-custom">Return to Dashboard</a>
+</div>
+{% endblock %}

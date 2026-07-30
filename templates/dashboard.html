@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - AttentAI Classroom System{% endblock %}
+{% block header_title %}Executive Monitoring Dashboard{% endblock %}
+
+{% block content %}
+<!-- Active Session Banner -->
+{% if active_session %}
+<div class="glass-card mb-4 border-primary" style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(17, 24, 39, 0.9));">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+            <span class="badge bg-primary mb-2"><i class="fas fa-satellite-dish me-1"></i> ACTIVE SESSION IN PROGRESS</span>
+            <h4 class="fw-bold text-white mb-1">{{ active_session.subject_name }}</h4>
+            <p class="text-secondary small mb-0">
+                <i class="fas fa-layer-group me-1"></i> {{ active_session.class_section }} | 
+                <i class="far fa-clock me-1"></i> Started at {{ active_session.start_time.strftime('%H:%M:%S') if active_session.start_time else '' }}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('monitoring.live_monitoring') }}" class="btn btn-primary-custom">
+                <i class="fas fa-video me-1"></i> Launch Live Monitoring
+            </a>
+            <form action="{{ url_for('attendance.stop_session', session_id=active_session.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-stop-circle me-1"></i> Stop Session
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="glass-card mb-4 text-center py-4">
+    <h5 class="fw-bold text-white">No Active Class Session</h5>
+    <p class="text-muted small mb-3">Start a new classroom session to begin automated face recognition and attentiveness logging.</p>
+    <a href="{{ url_for('attendance.manage_sessions') }}" class="btn btn-primary-custom">
+        <i class="fas fa-plus-circle me-1"></i> Start New Class Session
+    </a>
+</div>
+{% endif %}
+
+<!-- Key Metrics Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Total Registered Students</div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="text-xs text-muted mt-1"><i class="fas fa-user-graduate me-1"></i> AI & DS Department</div>
+            </div>
+            <div class="stat-icon blue">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Present Today</div>
+                <div class="stat-value text-success">{{ present_today }} <span class="fs-6 text-muted">/ {{ total_students }}</span></div>
+                <div class="text-xs text-success mt-1"><i class="fas fa-check-circle me-1"></i> {{ attendance_rate }}% Attendance Rate</div>
+            </div>
+            <div class="stat-icon green">
+                <i class="fas fa-user-check"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Average Attention Score</div>
+                <div class="stat-value text-warning">{{ avg_attention }}%</div>
+                <div class="text-xs text-warning mt-1"><i class="fas fa-brain me-1"></i> Visual AI Estimation</div>
+            </div>
+            <div class="stat-icon orange">
+                <i class="fas fa-bolt"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="glass-card stat-card">
+            <div>
+                <div class="stat-label">Attentive / Inattentive</div>
+                <div class="stat-value text-white">{{ attentive_count }} <span class="fs-6 text-danger">/ {{ inattentive_count }}</span></div>
+                <div class="text-xs text-muted mt-1"><i class="fas fa-chart-bar me-1"></i> Real-Time Eye & Pose</div>
+            </div>
+            <div class="stat-icon purple">
+                <i class="fas fa-smile"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Tables Row -->
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="glass-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i> Recent Attendance Records</h6>
+                <a href="{{ url_for('attendance.list_attendance') }}" class="text-primary text-decoration-none small">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>ID / Roll</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in recent_attendance %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-placeholder" style="width:32px; height:32px; font-size:0.75rem;">
+                                        {{ record.student.name[0] if record.student else 'U' }}
+                                    </div>
+                                    <span class="fw-semibold text-white">{{ record.student.name if record.student else 'Unknown' }}</span>
+                                </div>
+                            </td>
+                            <td class="text-muted small">{{ record.student.student_id if record.student else 'N/A' }}</td>
+                            <td class="text-muted small">{{ record.timestamp.strftime('%H:%M:%S') }}</td>
+                            <td><span class="badge bg-success-subtle text-success border border-success">{{ record.status }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No attendance records logged today yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="glass-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="fw-bold text-white mb-0"><i class="fas fa-history text-warning me-2"></i> Recent Class Sessions</h6>
+                <a href="{{ url_for('attendance.manage_sessions') }}" class="text-warning text-decoration-none small">Manage <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="list-group list-group-flush bg-transparent">
+                {% for s in recent_sessions %}
+                <div class="list-group-item bg-transparent border-secondary text-white px-0 py-2.5">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="fw-bold text-white small">{{ s.subject_name }}</div>
+                            <div class="text-muted text-xs">{{ s.class_section }} | {{ s.session_date.strftime('%Y-%m-%d') if s.session_date else '' }}</div>
+                        </div>
+                        <div>
+                            {% if s.is_active %}
+                                <span class="badge bg-primary">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Completed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-3">No recent sessions found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

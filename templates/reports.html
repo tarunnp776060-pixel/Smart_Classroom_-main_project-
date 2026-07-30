@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Data Export - AttentAI System{% endblock %}
+{% block header_title %}Reports Generation & Data Export{% endblock %}
+
+{% block content %}
+<div class="glass-card mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h5 class="fw-bold text-white mb-1"><i class="fas fa-file-export text-primary me-2"></i> Attendance & Attentiveness Reports</h5>
+            <p class="text-muted small mb-0">Filter and export classroom analytics to CSV for institutional recordkeeping.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('reports.export_csv') }}?type=attendance" class="btn btn-outline-success btn-sm">
+                <i class="fas fa-file-csv me-1"></i> Export Attendance CSV
+            </a>
+            <a href="{{ url_for('reports.export_csv') }}?type=attention" class="btn btn-outline-warning btn-sm">
+                <i class="fas fa-file-excel me-1"></i> Export Attentiveness CSV
+            </a>
+            <button onclick="window.print();" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-print me-1"></i> Print / PDF Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('reports.report_view') }}" class="row g-2 mb-4">
+        <div class="col-md-3">
+            <label class="form-label text-secondary small fw-semibold">Student</label>
+            <select name="student_id" class="form-select bg-dark border-secondary text-white">
+                <option value="">-- All Students --</option>
+                {% for st in students %}
+                <option value="{{ st.id }}" {% if selected_student == st.id|string %}selected{% endif %}>{{ st.name }} ({{ st.student_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-secondary small fw-semibold">Class Session</label>
+            <select name="session_id" class="form-select bg-dark border-secondary text-white">
+                <option value="">-- All Sessions --</option>
+                {% for s in sessions %}
+                <option value="{{ s.id }}" {% if selected_session == s.id|string %}selected{% endif %}>{{ s.subject_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-secondary small fw-semibold">Start Date</label>
+            <input type="date" name="start_date" class="form-control bg-dark border-secondary text-white" value="{{ start_date }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label text-secondary small fw-semibold">End Date</label>
+            <input type="date" name="end_date" class="form-control bg-dark border-secondary text-white" value="{{ end_date }}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary-custom w-100"><i class="fas fa-search me-1"></i> Generate</button>
+        </div>
+    </form>
+</div>
+
+<!-- Preview Tables -->
+<div class="row g-4">
+    <!-- Attendance Table -->
+    <div class="col-lg-6">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-clipboard-check text-success me-2"></i> Attendance Log Preview ({{ attendance_records|length }})</h6>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in attendance_records %}
+                        <tr>
+                            <td class="text-muted small">{{ r.record_date.strftime('%Y-%m-%d') }}</td>
+                            <td class="fw-semibold text-white">{{ r.student.name if r.student else 'Unknown' }}</td>
+                            <td><span class="badge bg-success-subtle text-success border border-success">{{ r.status }}</span></td>
+                            <td class="text-info small">{{ round(r.confidence * 100, 1) }}%</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No matching attendance records.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attentiveness Log Table -->
+    <div class="col-lg-6">
+        <div class="glass-card">
+            <h6 class="fw-bold text-white mb-3"><i class="fas fa-brain text-warning me-2"></i> Attentiveness Log Preview ({{ attention_records|length }})</h6>
+            <div class="table-responsive">
+                <table class="table table-custom align-middle">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Student</th>
+                            <th>Score</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in attention_records %}
+                        <tr>
+                            <td class="text-muted small">{{ a.timestamp.strftime('%H:%M:%S') }}</td>
+                            <td class="fw-semibold text-white">{{ a.student.name if a.student else 'Unknown' }}</td>
+                            <td class="fw-bold text-white">{{ round(a.attention_score, 1) }}%</td>
+                            <td>
+                                <span class="badge {% if a.category == 'Attentive' %}badge-attentive{% elif a.category == 'Partially Attentive' %}badge-partially{% else %}badge-inattentive{% endif %}">
+                                    {{ a.category }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">No matching attentiveness records.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
